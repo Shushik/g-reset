@@ -5,6 +5,7 @@ body
     height: 100%;
 }
 
+
 body,
 form,
 fieldset,
@@ -46,12 +47,14 @@ th
 
 ul,
 ol,
-li{
+li
+{
     list-style: none outside;
 }
 
-img,
-fieldset{
+fieldset,
+img
+{
     border-width: 0;
 }
 
@@ -63,7 +66,8 @@ textarea
     font-family: Helvetica, Arial, sans-serif;
 }
 
-fieldset{
+fieldset
+{
     display: block;
 }
 
