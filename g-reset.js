@@ -4,7 +4,7 @@
  * @version     1.0
  * @description Simple jQuery-like lib
  */
-;window.$ = (function(ctx) {
+$ = SJQ = (function(ctx) {
 
     var
         /**
@@ -104,6 +104,7 @@
         var
             type  = event.type,
             alias = '',
+            ntype = '',
             clean = {
                 originalEvent : event
             };
@@ -114,11 +115,11 @@
         }
 
         // Events hacks for older browsers
-        if (event.srcElement) {
+        if (!event.target) {
             clean.target = event.srcElement;
         }
 
-        if (event.target.nodeType == 3) {
+        if (clean.target.nodeType === 3) {
             clean.target = event.target.parentNode;
         }
 
