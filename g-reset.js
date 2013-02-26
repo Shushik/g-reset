@@ -4,7 +4,7 @@
  * @version     1.0
  * @description Simple jQuery-like lib
  */
-$ = SJQ = (function(ctx) {
+$ = SJQL = (function(ctx) {
 
     var
         /**
