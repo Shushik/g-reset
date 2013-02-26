@@ -28,7 +28,7 @@ $ = SJQL = (function(ctx) {
         };
 
     /**
-     * DOM Event handler bind
+     * DOM Events handlers bind
      *
      * @this   {$}
      * @param  {DOMNode}
@@ -38,10 +38,22 @@ $ = SJQL = (function(ctx) {
      */
     $.on = function(node, alias, handler) {
         var
+            end   = 0,
+            pos   = 0,
             pfix  = '',
             wrap  = '',
             fn    = null;
 
+        // Read all event aliases
+        alias = alias.split(' ');
+        end   = alias.length;
+
+        // Check if the events aliases were given
+        if (!end) {
+            return;
+        }
+
+        // Choose a method to bind an event handler
         if (node.addEventListener) {
             wrap = 'addEventListener';
         } else if (node.attachEvent) {
@@ -49,6 +61,7 @@ $ = SJQL = (function(ctx) {
             wrap = 'attachEvent';
         }
 
+        // Create the proxied handler wrapper
         fn = $.proxy(function(event) {
             var
                 norm = $.event(event);
@@ -56,16 +69,20 @@ $ = SJQL = (function(ctx) {
             handler.call(this, norm);
         }, node);
 
-        node[wrap](
-            pfix + alias,
-            fn
-        );
+        // Bind event handlers for all given
+        // types of events
+        for (pos = 0; pos < end; pos++) {
+            node[wrap](
+                pfix + alias[pos],
+                fn
+            );
+        }
 
         return fn;
     }
 
     /**
-     * DOM Event handler unbind
+     * DOM Events handlers unbind
      *
      * @this   {$}
      * @param  {DOMNode}
@@ -75,9 +92,21 @@ $ = SJQL = (function(ctx) {
      */
     $.off = function(node, alias, fn) {
         var
+            end  = 0,
+            pos  = 0,
             pfix = '',
             wrap = '';
 
+        // Read all event aliases
+        alias = alias.split(' ');
+        end   = alias.length;
+
+        // Check if the events aliases were given
+        if (!end) {
+            return;
+        }
+
+        // Choose a method to bind event handlers
         if (node.removeEventListener) {
             wrap = 'removeEventListener';
         } else if (node.detachEvent) {
@@ -85,10 +114,14 @@ $ = SJQL = (function(ctx) {
             wrap = 'detachEvent';
         }
 
-        node[wrap](
-            pfix + alias,
-            fn
-        );
+        // Unbind event handlers for all given
+        // types of events
+        for (pos = 0; pos < end; pos++) {
+            node[wrap](
+                pfix + alias[pos],
+                fn
+            );
+        }
     }
 
     /**
@@ -106,6 +139,7 @@ $ = SJQL = (function(ctx) {
             alias = '',
             ntype = '',
             clean = {
+                // Readonly original event object
                 originalEvent : event
             };
 
@@ -162,13 +196,91 @@ $ = SJQL = (function(ctx) {
     }
 
     /**
+     * Read or write given attribute
+     *
+     * @this   {$}
+     * @param  {DOMNode}
+     * @param  {string}
+     * @param  {string|object|function}
+     * @return {undefined|boolean|number|string|object|function}
+     */
+    $.attr = function(node, alias, value) {
+        var
+            act  = alias.match(/^on/g) ? true : false,
+            read = '';
+
+        if (arguments.length > 2) {
+            // Set the attribute value
+            if (act && typeof value == 'function') {
+                node[alias] = value;
+            } else {
+                node.setAttribute(alias, value);
+            }
+        } else if (value === null) {
+            node.removeAttribute(alias);
+        } else {
+            // Get the attribute value
+            if (act && typeof node[alias] == 'function') {
+                read = node[alias]();
+            } else {
+                read = node.getAttribute(alias);
+            }
+
+            return read ? read : '';
+        }
+    }
+
+    /**
+     * className operations
+     *
+     * @param  {DOMNode}
+     * @param  {string}
+     * @param  {string}
+     * @param  {string}
+     * @return {undefined|boolean}
+     */
+    $.cname = function(node, cmd, alias, replacement) {
+        replacement = replacement || '';
+
+        var
+            check = false,
+            pos   = 0,
+            cname = node.className ?
+                    attr.
+                    replace(/[\n\t\r]/g, ' ').
+                    replace(/ {2,}/g, ' ').
+                    split(' ') :
+                    [];
+
+        pos   = $.index(alias, cname);
+        check = pos > -1 ? true : false;
+
+        if (cmd == 'check') {
+            // Check if the class exists
+            return check;
+        } else if (cmd == 'remove' && check) {
+            // Remove the existant class
+            cname.splice(pos, 1);
+        } else if (cmd == 'add' && !check) {
+            // Add the new class
+            cname.push(alias);
+        } else if (cmd == 'replace' && check && replacement) {
+            // Replace the given class
+            cname[pos] = replacement;
+        }
+
+        // Save the new className
+        node.className = cname.join(' ');
+    }
+
+    /**
      * Get an offset for chosen elements
      * (magic copypasted from jQuery)
      *
-     * @this    {Suggest}
+     * @this    {$}
      * @param   {DOMNode}
      * @param   {DOMNode}
-     * @returns {Object}
+     * @returns {object}
      */
     $.offset = function(from, till) {
         till = till || document.body;
@@ -254,6 +366,45 @@ $ = SJQL = (function(ctx) {
 
             return fn.apply(ctx, args);
         }
+    }
+
+    /**
+     * IndexOf alias (works with objects too)
+     *
+     * @this   {$}
+     * @param  {number|string}
+     * @param  {object}
+     * @return {number|string}
+     */
+    $.index = function(hayfork, haystack) {
+        var
+            end   = 0,
+            pos   = 0,
+            alias = '';
+
+        if (typeof haystack == 'object') {
+            if (haystack instanceof Array) {
+                if (haystack.indexOf) {
+                    return haystack.indexOf(hayfork);
+                } else {
+                    end = haystack.length;
+
+                    for (pos = 0; pos < end; pos++) {
+                        if (haystack[pos] === hayfork) {
+                            return pos;
+                        }
+                    }
+                }
+            } else {
+                for (alias in haystack) {
+                    if (haystack[alias] === hayfork) {
+                        return alias;
+                    }
+                }
+            }
+        }
+
+        return -1;
     }
 
     /**
