@@ -233,14 +233,15 @@ $ = SJQL = (function(ctx) {
     /**
      * className operations
      *
+     * @this   {$}
      * @param  {DOMNode}
      * @param  {string}
      * @param  {string}
      * @param  {string}
      * @return {undefined|boolean}
      */
-    $.cname = function(node, cmd, alias, replacement) {
-        replacement = replacement || '';
+    $.cname = function(node, cmd, alias, value) {
+        value = value || '';
 
         var
             check = false,
@@ -258,15 +259,15 @@ $ = SJQL = (function(ctx) {
         if (cmd == 'check') {
             // Check if the class exists
             return check;
-        } else if (cmd == 'remove' && check) {
-            // Remove the existant class
-            cname.splice(pos, 1);
-        } else if (cmd == 'add' && !check) {
+        } else if (cmd == 'set' && !check) {
             // Add the new class
             cname.push(alias);
-        } else if (cmd == 'replace' && check && replacement) {
+        } else if (cmd == 'unset' && check) {
+            // Remove the existant class
+            cname.splice(pos, 1);
+        } else if (cmd == 'reset' && check && value) {
             // Replace the given class
-            cname[pos] = replacement;
+            cname[pos] = value;
         }
 
         // Save the new className
@@ -277,10 +278,10 @@ $ = SJQL = (function(ctx) {
      * Get an offset for chosen elements
      * (magic copypasted from jQuery)
      *
-     * @this    {$}
-     * @param   {DOMNode}
-     * @param   {DOMNode}
-     * @returns {object}
+     * @this   {$}
+     * @param  {DOMNode}
+     * @param  {DOMNode}
+     * @return {object}
      */
     $.offset = function(from, till) {
         till = till || document.body;
@@ -408,12 +409,48 @@ $ = SJQL = (function(ctx) {
     }
 
     /**
+     * Make a camel-cased string
+     *
+     * @this   {$}
+     * @param  {string}
+     * @param  {boolean}
+     * @return {string}
+     */
+    $.camel = function(str, camelize) {
+        camelize = camelize || false;
+
+        var
+            pos   = 0,
+            camel = '';
+
+        // Camelize the string
+        if (typeof str == 'string') {
+            while (str[pos]) {
+                if (str[pos] == '-') {
+                    camelize = true;
+                } else {
+                    if (camelize) {
+                        camel += str[pos].toUpperCase();
+                        camelize = false;
+                    } else {
+                        camel += str[pos];
+                    }
+                }
+
+                pos++;
+            }
+        }
+
+        return camel;
+    }
+
+    /**
      * Make an AJAX request (async only)
      *
-     * @this    {$}
-     * @param   {string}
-     * @param   {object}
-     * @returns {XMLHttpRequest}
+     * @this   {$}
+     * @param  {string}
+     * @param  {object}
+     * @return {XMLHttpRequest}
      */
     $.ajax = function(url, handlers) {
         handlers = handlers || {};
@@ -482,9 +519,9 @@ $ = SJQL = (function(ctx) {
     /**
      * Encode string to JSON
      *
-     * @this    {$}
-     * @param   {string}
-     * @returns {object}
+     * @this   {$}
+     * @param  {string}
+     * @return {object}
      */
     $.json = function(data) {
         var
