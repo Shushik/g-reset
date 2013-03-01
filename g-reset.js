@@ -28,6 +28,29 @@ $ = SJQL = (function(ctx) {
         };
 
     /**
+     * Short alias for getElementById
+     *
+     * @this   {$}
+     * @param  {string}
+     * @return {object|DOMNode}
+     */
+    $.id = document.getElementById;
+
+    /**
+     * Short alias for querySelectorAll
+     *
+     * @this   {$}
+     * @param  {string}
+     * @param  {DOMNode}
+     * @return {object|DOMNode}
+     */
+    $.qsa = function(query, ctx) {
+        ctx = ctx || document;
+
+        return ctx.querySelectorAll(query);
+    }
+
+    /**
      * DOM Events handlers bind
      *
      * @this   {$}
