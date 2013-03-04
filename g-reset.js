@@ -229,6 +229,31 @@ $ = SJQL = (function(ctx) {
     }
 
     /**
+     * Get the input, textarea, select or button value
+     *
+     * @this   {$}
+     * @param  {DOMNode}
+     * @param  {string}
+     * @return {undefined|string}
+     */
+    $.val = function(input, value) {
+        value = value || '';
+
+        var
+            tag  = input ? input.tagName : '',
+            tags = 'input,select,textarea,button',
+            type = typeof value;
+
+        if (tag && $.index(tag, tags.split(','))) {
+            if (type == 'string' || type == 'number') {
+                input.value = value;
+            }
+
+            return input.value;
+        }
+    }
+
+    /**
      * Read or write given attribute
      *
      * @this   {$}
