@@ -237,7 +237,7 @@ $ = SJQL = (function(ctx) {
      * @return {undefined|string}
      */
     $.val = function(input, value) {
-        value = value || '';
+        value = value || false;
 
         var
             tag  = input ? input.tagName : '',
@@ -245,7 +245,7 @@ $ = SJQL = (function(ctx) {
             type = typeof value;
 
         if (tag && $.index(tag, tags.split(','))) {
-            if (type == 'string' || type == 'number') {
+            if (type == 'number' || type == 'string') {
                 input.value = value;
             }
 
