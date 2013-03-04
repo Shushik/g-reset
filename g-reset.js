@@ -205,16 +205,24 @@ $ = SJQL = (function(ctx) {
 
         // Stop bubbling
         if (!event.stopPropagation) {
-            event.stopPropagation = function() {
-                this.cancelBubble = true;
+            clean.stopPropagation = function() {
+                event.cancelBubble = true;
             };
+        } else {
+            clean.stopPropagation = function() {
+                event.stopPropagation();
+            }
         }
 
         // Prevent default action
         if (!event.preventDefault) {
-            event.preventDefault = function() {
-                this.returnValue = false;
+            clean.preventDefault = function() {
+                event.returnValue = false;
             };
+        } else {
+            clean.preventDefault = function() {
+                event.preventDefault();
+            }
         }
 
         return clean;
@@ -235,6 +243,7 @@ $ = SJQL = (function(ctx) {
             read = '';
 
         if (arguments.length > 2) {
+            console.log(value);
             // Set the attribute value
             if (act && typeof value == 'function') {
                 node[alias] = value;
