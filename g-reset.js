@@ -34,7 +34,7 @@ $ = SJQL = (function(ctx) {
      * @param  {string}
      * @return {object|DOMNode}
      */
-    $.id = document.getElementById;
+    $.byid = document.getElementById;
 
     /**
      * Short alias for querySelectorAll
@@ -44,7 +44,7 @@ $ = SJQL = (function(ctx) {
      * @param  {DOMNode}
      * @return {object|DOMNode}
      */
-    $.qsa = function(query, ctx) {
+    $.byqs = function(query, ctx) {
         ctx = ctx || document;
 
         return ctx.querySelectorAll(query);
