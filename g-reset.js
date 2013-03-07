@@ -19,8 +19,10 @@ $ = SJQL = (function(ctx) {
          * @value {object}
          */
         _ = {
+            attr_boolean : 'loop,open,async,defer,hidden,scoped,checked,selected,autoplay,' +
+                           'controls,disabled,multiple,readonly,required,autofocus',
             /**
-             * 
+             * Published topics
              *
              * @value {object}
              */
@@ -269,10 +271,12 @@ $ = SJQL = (function(ctx) {
             type = node.nodeType,
             read = '';
 
+        //
         if (!node || type === 3 || type === 8 || type === 2 ) {
             return;
         }
 
+        //
         if (alias.match(/^on/) || typeof value === 'function') {
             act = true;
         }
@@ -280,23 +284,7 @@ $ = SJQL = (function(ctx) {
         //
         if ($.index(
             alias,
-            [
-                'loop',
-                'open',
-                'async',
-                'defer',
-                'hidden',
-                'scoped',
-                'checked',
-                'selected',
-                'autoplay',
-                'controls',
-                'disabled',
-                'multiple',
-                'readonly',
-                'required',
-                'autofocus'
-            ]
+            _.attr_boolean.split(',')
         ) > -1) {
             bool = true;
         }
