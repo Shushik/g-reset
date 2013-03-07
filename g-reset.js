@@ -178,7 +178,7 @@ $ = SJQL = (function(ctx) {
             clean.target = event.srcElement;
         }
 
-        if (clean.target.nodeType === 3) {
+        if (event.target.nodeType === 3) {
             clean.target = event.target.parentNode;
         }
 
@@ -264,29 +264,66 @@ $ = SJQL = (function(ctx) {
      */
     $.attr = function(node, alias, value) {
         var
-            act  = alias.match(/^on/g) ? true : false,
+            act  = false,
+            bool = false,
+            type = node.nodeType,
             read = '';
 
-        if (arguments.length > 2) {
-            console.log(value);
-            // Set the attribute value
-            if (act && typeof value == 'function') {
-                node[alias] = value;
+        if (!node || type === 3 || type === 8 || type === 2 ) {
+            return;
+        }
+
+        if (alias.match(/^on/) || typeof value === 'function') {
+            act = true;
+        }
+
+        //
+        if ($.index(
+            alias,
+            [
+                'loop',
+                'open',
+                'async',
+                'defer',
+                'hidden',
+                'scoped',
+                'checked',
+                'selected',
+                'autoplay',
+                'controls',
+                'disabled',
+                'multiple',
+                'readonly',
+                'required',
+                'autofocus'
+            ]
+        ) > -1) {
+            bool = true;
+        }
+
+        if (value !== undefined) {
+            if (value === null) {
+                if (bool) {
+                    node[alias] = false;
+                }
+
+                node.removeAttribute(alias);
             } else {
+                if (bool) {
+                    node[alias] = true;
+                }
+
                 node.setAttribute(alias, value);
             }
-        } else if (value === null) {
-            node.removeAttribute(alias);
         } else {
-            // Get the attribute value
-            if (act && typeof node[alias] == 'function') {
-                read = node[alias]();
+            if (bool) {
+                read = node[alias];
             } else {
                 read = node.getAttribute(alias);
             }
-
-            return read ? read : '';
         }
+
+        return read;
     }
 
     /**
@@ -306,7 +343,7 @@ $ = SJQL = (function(ctx) {
             check = false,
             pos   = 0,
             cname = node.className ?
-                    attr.
+                    node.className.
                     replace(/[\n\t\r]/g, ' ').
                     replace(/ {2,}/g, ' ').
                     split(' ') :
@@ -417,14 +454,11 @@ $ = SJQL = (function(ctx) {
      * @this   {$}
      * @param  {function}
      * @param  {object}
-     * @return {}
+     * @return {function}
      */
     $.proxy = function(fn, ctx) {
         return function() {
-            var
-                args = arguments;
-
-            return fn.apply(ctx, args);
+            return fn.apply(ctx, arguments);
         }
     }
 
@@ -509,21 +543,40 @@ $ = SJQL = (function(ctx) {
      * @this   {$}
      * @param  {string}
      * @param  {object}
+     * @param  {object}
+     * @param  {string}
      * @return {XMLHttpRequest}
      */
-    $.ajax = function(url, handlers) {
+    $.ajax = function(url, args, handlers, type) {
+        args     = args || null;
+        type     = (type || 'GET').toUpperCase();
         handlers = handlers || {};
 
         var
-            pos   = 0,
-            field = '',
-            apis  = [
-                      function() {return new XMLHttpRequest()},
-                      function() {return new ActiveXObject("Msxml2.XMLHTTP")},
-                      function() {return new ActiveXObject("Msxml3.XMLHTTP")},
-                      function() {return new ActiveXObject("Microsoft.XMLHTTP")}
-                    ],
-            xhr   = null;
+            pos    = 0,
+            alias  = '',
+            field  = '',
+            fields = '',
+            apis   = [
+                function() {return new XMLHttpRequest()},
+                function() {return new ActiveXObject("Msxml2.XMLHTTP")},
+                function() {return new ActiveXObject("Msxml3.XMLHTTP")},
+                function() {return new ActiveXObject("Microsoft.XMLHTTP")}
+            ],
+            xhr    = null;
+
+        //
+        if (type == 'GET' && args) {
+            for (alias in args) {
+                fields += '&' + alias + '=' + encodeURIComponent(args[alias]);
+            }
+
+            if (!url.match(/\?/)) {
+                fields = fields.replace(/^&/, '?');
+            }
+
+            url += fields;
+        }
 
         //
         for (pos = 0; pos < 4; pos++) {
@@ -542,7 +595,7 @@ $ = SJQL = (function(ctx) {
         }
 
         //
-        xhr.open('GET', url, true);
+        xhr.open(type, url, true);
         xhr.setRequestHeader('User-Agent', 'XMLHTTP/1.0');
 
         //
