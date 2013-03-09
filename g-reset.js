@@ -256,7 +256,41 @@ $ = SJQL = (function(ctx) {
     }
 
     /**
-     * Read or write given attribute
+     * Read or write given property from DOMNode
+     *
+     * @this   {$}
+     * @param  {DOMNode}
+     * @param  {string}
+     * @param  {string|object|function}
+     * @return {undefined|boolean|number|string|object|function}
+     */
+    $.prop = function(node, alias, value) {
+        var
+            read = '';
+
+        if (alias.match(/-/)) {
+            alias = $.camel(alias);
+        }
+
+        if (value !== undefined) {
+            if (value === null && node[alias]) {
+                delete node[alias];
+            } else {
+                node[alias] = value;
+            }
+        } else {
+            if (typeof node[alias] === 'function') {
+                read = node[alias]();
+            } else {
+                read = node[alias];
+            }
+        }
+
+        return read;
+    }
+
+    /**
+     * Read or write given attribute from DOMNode
      *
      * @this   {$}
      * @param  {DOMNode}
@@ -271,17 +305,17 @@ $ = SJQL = (function(ctx) {
             type = node.nodeType,
             read = '';
 
-        //
+        // Filter the text and comments nodes
         if (!node || type === 3 || type === 8 || type === 2 ) {
             return;
         }
 
-        //
+        // Set an indicator to a function
         if (alias.match(/^on/) || typeof value === 'function') {
             act = true;
         }
 
-        //
+        // Set an indicator of boolean typed attributes
         if ($.index(
             alias,
             _.attr_boolean.split(',')
