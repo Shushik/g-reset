@@ -246,7 +246,7 @@ $ = SJQL = (function(ctx) {
             tags = 'input,select,textarea,button',
             type = typeof value;
 
-        if (tag && $.index(tag, tags.split(','))) {
+        if (tag && $.index(tag, tags.split(',') != -1)) {
             if (type == 'number' || type == 'string') {
                 input.value = value;
             }
