@@ -19,8 +19,10 @@ $ = SJQL = (function(ctx) {
          * @value {object}
          */
         _ = {
-            attr_boolean : 'loop,open,async,defer,hidden,scoped,checked,selected,autoplay,' +
-                           'controls,disabled,multiple,readonly,required,autofocus',
+            attr : {
+                bool : 'loop,open,async,defer,hidden,scoped,checked,selected,autoplay,controls,disabled,multiple,readonly,required,autofocus',
+                prop : 'value'
+            },
             /**
              * Published topics
              *
@@ -238,20 +240,20 @@ $ = SJQL = (function(ctx) {
      * @param  {string}
      * @return {undefined|string}
      */
-    $.val = function(input, value) {
-        value = value || false;
-
+    $.val = function(node, value) {
         var
-            tag  = input ? input.tagName : '',
+            tag  = node && node.tagName ? node.tagName.toLowerCase() : '',
             tags = 'input,select,textarea,button',
             type = typeof value;
 
-        if (tag && $.index(tag, tags.split(',') != -1)) {
-            if (type == 'number' || type == 'string') {
-                input.value = value;
+        if (tag && $.index(tag, tags.split(',')) != -1) {
+            if (value !== undefined) {
+                if (type === 'number' || type === 'string') {
+                    $.prop(node, 'value', value)
+                }
             }
 
-            return input.value;
+            return $.prop(node, 'value', value);
         }
     }
 
@@ -302,6 +304,7 @@ $ = SJQL = (function(ctx) {
         var
             act  = false,
             bool = false,
+            prop = false,
             type = node.nodeType,
             read = '';
 
@@ -315,24 +318,33 @@ $ = SJQL = (function(ctx) {
             act = true;
         }
 
-        // Set an indicator of boolean typed attributes
+        // Set an indicator of boolean or direct typed attributes
         if ($.index(
             alias,
-            _.attr_boolean.split(',')
+            _.attr.bool.split(',')
         ) > -1) {
             bool = true;
+        } else if ($.index(
+            alias,
+            _.attr.prop.split(',')
+        ) > -1) {
+            prop = true;
         }
 
         if (value !== undefined) {
             if (value === null) {
                 if (bool) {
                     node[alias] = false;
+                } else if (prop) {
+                    $.prop(node, alias, value);
                 }
 
                 node.removeAttribute(alias);
             } else {
                 if (bool) {
                     node[alias] = true;
+                } else if (prop) {
+                    $.prop(node, alias, value);
                 }
 
                 node.setAttribute(alias, value);
@@ -340,6 +352,8 @@ $ = SJQL = (function(ctx) {
         } else {
             if (bool) {
                 read = node[alias];
+            } else if (prop) {
+                read = $.prop(node, alias);
             } else {
                 read = node.getAttribute(alias);
             }
@@ -511,16 +525,18 @@ $ = SJQL = (function(ctx) {
                         }
                     }
                 }
+
+                return -1;
             } else {
                 for (alias in haystack) {
                     if (haystack[alias] === hayfork) {
                         return alias;
                     }
                 }
+
+                return null;
             }
         }
-
-        return -1;
     }
 
     /**
