@@ -540,6 +540,33 @@ $ = SJQL = (function(ctx) {
     }
 
     /**
+     * Trim a string
+     *
+     * @this   {$}
+     * @param  {string}
+     * @param  {boolean}
+     * @return {string}
+     */
+    $.trim = function(str, clean) {
+        if (!str.trim) {
+            str = str.trim();
+        } else {
+            str = str.replace(/^\s*/g, '').replace(/\s*$/g, '')
+        }
+
+        // Clean the string from double spaces, tabs
+        if (clean !== undefined) {
+            str = str.
+                  replace(/\r/g, '').
+                  replace(/\t/g, ' ').
+                  replace(/\n{2,}/g, '\n').
+                  replace(/ {2,}/, ' ');
+        }
+
+        return str;
+    }
+
+    /**
      * Make a camel-cased string
      *
      * @this   {$}
