@@ -21,7 +21,7 @@ $ = SJQL = (function(ctx) {
         _ = {
             attr : {
                 bool : 'loop,open,async,defer,hidden,scoped,checked,selected,autoplay,controls,disabled,multiple,readonly,required,autofocus',
-                prop : 'id,dir,lang,value,style'
+                prop : 'id,dir,lang,title,value,style'
             },
             /**
              * Published topics
