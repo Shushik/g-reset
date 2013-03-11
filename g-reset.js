@@ -261,7 +261,7 @@ $ = SJQL = (function(ctx) {
      * @this   {$}
      * @param  {DOMNode}
      * @param  {string}
-     * @param  {string|object|function}
+     * @param  {boolean|number|string|object|function}
      * @return {undefined|boolean|number|string|object|function}
      */
     $.prop = function(node, alias, value) {
