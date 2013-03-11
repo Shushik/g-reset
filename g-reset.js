@@ -21,7 +21,7 @@ $ = SJQL = (function(ctx) {
         _ = {
             attr : {
                 bool : 'loop,open,async,defer,hidden,scoped,checked,selected,autoplay,controls,disabled,multiple,readonly,required,autofocus',
-                prop : 'value'
+                prop : 'id,dir,lang,value,style'
             },
             /**
              * Published topics
@@ -36,11 +36,11 @@ $ = SJQL = (function(ctx) {
      *
      * @this   {$}
      * @param  {string}
-     * @return {object|DOMNode}
+     * @return {Null|DOMNode}
      */
     $.byid = function(id) {
         return document.getElementById(id);
-    };
+    }
 
     /**
      * Short alias for querySelectorAll
@@ -48,12 +48,68 @@ $ = SJQL = (function(ctx) {
      * @this   {$}
      * @param  {string}
      * @param  {DOMNode}
-     * @return {object|DOMNode}
+     * @return {DOMNodesList}
      */
     $.byqs = function(query, ctx) {
         ctx = ctx || document;
 
         return ctx.querySelectorAll(query);
+    }
+
+    /**
+     * Short alias for querySelectorAll
+     *
+     * @this   {$}
+     * @param  {DOMNode}
+     * @param  {string}
+     * @param  {DOMNode}
+     * @return {Null|DOMNode}
+     */
+    $.closest = function(from, expr, till) {
+        till = till || document.body;
+
+        var
+            fin  = false,
+            by   = 'tag',
+            chk  = '',
+            node = from;
+
+        //
+        if (typeof expr !== 'string') {
+            return;
+        } else {
+            expr  = $.trim(expr);
+            chk = expr.substring(0, 1);
+        }
+
+        // Get a mode for comparison
+        if (chk === '.') {
+            by = 'class';
+        } else if (chk === '#') {
+            by = 'id';
+        }
+
+        // Clean the dot and the sharp
+        expr = expr.replace(/^[#\.]/, '');
+
+        // Iterate through the parent nodes
+        while (node != till) {
+            if (by === 'id' && node.id === expr) {
+                fin = true;
+            } else if (by === 'class' && $.cname(node, 'check', expr)) {
+                fin = true;
+            } else if (by === 'tag' && node.tagName === expr.toUpperCase()) {
+                fin = true;
+            }
+
+            if (fin) {
+                return node;
+            } else {
+                node = node.parentNode;
+            }
+        }
+
+        return null;
     }
 
     /**
