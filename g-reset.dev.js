@@ -69,44 +69,27 @@ $ = SJQL = (function(ctx) {
         till = till || document.body;
 
         var
-            fin  = false,
-            by   = 'tag',
-            chk  = '',
-            node = from;
+            end    = 0,
+            pos    = 0,
+            chk    = null,
+            list   = null,
+            node   = from,
+            parent = node.parentNode;
 
-        //
-        if (typeof expr !== 'string') {
-            return;
-        } else {
-            expr  = $.trim(expr);
-            chk = expr.substring(0, 1);
-        }
-
-        // Get a mode for comparison
-        if (chk === '.') {
-            by = 'class';
-        } else if (chk === '#') {
-            by = 'id';
-        }
-
-        // Clean the dot and the sharp
-        expr = expr.replace(/^[#\.]/, '');
-
-        // Iterate through the parent nodes
         while (node != till) {
-            if (by === 'id' && node.id === expr) {
-                fin = true;
-            } else if (by === 'class' && $.cname(node, 'check', expr)) {
-                fin = true;
-            } else if (by === 'tag' && node.tagName === expr.toUpperCase()) {
-                fin = true;
+            parent = node.parentNode;
+            list   = parent.parentNode.querySelectorAll(expr);
+            end    = list.length - 1;
+
+            for (pos = end; pos >= 0; pos--) {
+                chk = list[pos];
+
+                if (chk == parent) {
+                    return parent;
+                }
             }
 
-            if (fin) {
-                return node;
-            } else {
-                node = node.parentNode;
-            }
+            node = parent;
         }
 
         return null;
