@@ -4,7 +4,7 @@
  * @version     1.0
  * @description Simple jQuery-like lib
  */
-$ = SJQL = (function(ctx) {
+$ = SJQL = (function() {
 
     var
         /**
@@ -57,7 +57,7 @@ $ = SJQL = (function(ctx) {
     }
 
     /**
-     * Short alias for querySelectorAll
+     * Find the closest parent node which matches the query
      *
      * @this   {$}
      * @param  {DOMNode}
@@ -76,14 +76,17 @@ $ = SJQL = (function(ctx) {
             node   = from,
             parent = node.parentNode;
 
+        // Iterate through all parent nodes
         while (node != till) {
             parent = node.parentNode;
             list   = parent.parentNode.querySelectorAll(expr);
             end    = list.length - 1;
 
+            // Check if a current parent`s parent contains the needed node
             for (pos = end; pos >= 0; pos--) {
                 chk = list[pos];
 
+                // Return the founded node
                 if (chk == parent) {
                     return parent;
                 }
