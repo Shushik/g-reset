@@ -424,13 +424,10 @@ $ = SJQL = (function(ctx) {
      * @this   {$}
      * @param  {DOMNode}
      * @param  {string}
-     * @param  {string}
-     * @param  {string}
+     * @param  {boolean}
      * @return {undefined|boolean}
      */
-    $.cname = function(node, cmd, alias, value) {
-        value = value || '';
-
+    $.cname = function(node, alias, set) {
         var
             check = false,
             pos   = 0,
@@ -444,18 +441,21 @@ $ = SJQL = (function(ctx) {
         pos   = $.index(alias, cname);
         check = pos > -1 ? true : false;
 
-        if (cmd == 'check') {
-            // Check if the class exists
+        if (set !== undefined) {
+            if (set === false && check) {
+                // Remove the existant class
+                cname.splice(pos, 1);
+            } else if (set === true) {
+                if (check) {
+                    // Replace the given class
+                    cname[pos] = alias;
+                } else {
+                    // Add the new class
+                    cname.push(alias);
+                }
+            }
+        } else {
             return check;
-        } else if (cmd == 'set' && !check) {
-            // Add the new class
-            cname.push(alias);
-        } else if (cmd == 'unset' && check) {
-            // Remove the existant class
-            cname.splice(pos, 1);
-        } else if (cmd == 'reset' && check && value) {
-            // Replace the given class
-            cname[pos] = value;
         }
 
         // Save the new className
