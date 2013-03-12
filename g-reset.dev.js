@@ -12,7 +12,7 @@ $ = SJQL = (function(ctx) {
          *
          * @value {object}
          */
-        $ = {},
+        $ = function() {},
         /**
          * Common trash object
          *
@@ -38,7 +38,7 @@ $ = SJQL = (function(ctx) {
      * @param  {string}
      * @return {Null|DOMNode}
      */
-    $.byid = function(id) {
+    $.id = function(id) {
         return document.getElementById(id);
     }
 
@@ -50,7 +50,7 @@ $ = SJQL = (function(ctx) {
      * @param  {DOMNode}
      * @return {DOMNodesList}
      */
-    $.byqs = function(query, ctx) {
+    $.find = function(query, ctx) {
         ctx = ctx || document;
 
         return ctx.querySelectorAll(query);
