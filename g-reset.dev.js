@@ -663,29 +663,38 @@ $ = SJQL = (function() {
             pos    = 0,
             alias  = '',
             field  = '',
-            fields = '',
             apis   = [
                 function() {return new XMLHttpRequest()},
                 function() {return new ActiveXObject("Msxml2.XMLHTTP")},
                 function() {return new ActiveXObject("Msxml3.XMLHTTP")},
                 function() {return new ActiveXObject("Microsoft.XMLHTTP")}
             ],
+            fields = [],
             xhr    = null;
 
-        //
-        if (type == 'GET' && args) {
+        // Encode the request arguments
+        if (typeof args === 'object') {
             for (alias in args) {
-                fields += '&' + alias + '=' + encodeURIComponent(args[alias]);
+                fields.push(alias + '=' + encodeURIComponent(args[alias]));
             }
 
-            if (!url.match(/\?/)) {
-                fields = fields.replace(/^&/, '?');
-            }
-
-            url += fields;
+            fields = fields.length ? fields.join('&') : '';
+        } else if (typeof args === 'string') {
+            fields = encodeURI(args);
         }
 
-        //
+        // Add fields into the url for GET request
+        if (type === 'GET') {
+            if (url.match(/\?/)) {
+                url += '&' + fields;
+            } else {
+                url += '?' + fields;
+            }
+
+            fields = '';
+        }
+
+        // Create the XMLHttpRequest object
         for (pos = 0; pos < 4; pos++) {
             try {
                 xhr = apis[pos]();
@@ -696,24 +705,33 @@ $ = SJQL = (function() {
             break;
         }
 
-        //
+        // Exit if XMLHttpRequest object doesn`t exist
         if (!xhr) {
             return;
         }
 
-        //
+        // Setup the XMLHttpRequest for the current request
         xhr.open(type, url, true);
         xhr.setRequestHeader('User-Agent', 'XMLHTTP/1.0');
 
         //
+        if (type === 'POST') {
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        }
+
+        // Set a handler for the request finish
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (
-                    xhr.status == 200 && handlers.success ||
-                    xhr.status == 304 && handlers.success
+                    xhr.status == 200 ||
+                    xhr.status == 304
                 ) {
-                    handlers.success(xhr.responseText, xhr);
+                    // Run the success handler
+                    if (handlers.success) {
+                        handlers.success(xhr.responseText, xhr);
+                    }
                 } else if (handlers.error) {
+                    // Run the error handler
                     handlers.error({
                         status : xhr.status,
                         raw    : xhr.responseText ?
@@ -722,6 +740,7 @@ $ = SJQL = (function() {
                     });
                 }
             } else {
+                // Run the error handler
                 if (handlers.error) {
                     handlers.error(xhr);
                 }
@@ -730,7 +749,8 @@ $ = SJQL = (function() {
             }
         }
 
-        xhr.send();
+        // Send the request
+        xhr.send(fields);
 
         return xhr;
     };
