@@ -19,6 +19,13 @@ $ = SJQL = (function() {
          * @value {object}
          */
         _ = {
+            css : {
+                nopx : 'zoom,widows,zIndex,opacity,orphans,fontWeight,lineHeight,columnCount,fillOpacity',
+                pref : 'Webkit,O,Moz,ms',
+                norm : {
+                    'float' : 'cssFloat'
+                }
+            },
             attr : {
                 bool : 'loop,open,async,defer,hidden,scoped,checked,selected,autoplay,controls,disabled,multiple,readonly,required,autofocus',
                 prop : 'id,dir,lang,title,value,style'
@@ -272,6 +279,97 @@ $ = SJQL = (function() {
         }
 
         return clean;
+    }
+
+    /**
+     * Get the input, textarea, select or button value
+     *
+     * @this   {$}
+     * @param  {DOMNode}
+     * @param  {string}
+     * @param  {string}
+     * @return {undefined|string}
+     */
+    $.css = function(node, style, value) {
+        var
+            code   = '',
+            prop   = '',
+            alias  = '',
+            stype  = typeof style,
+            vtype  = typeof value,
+            search = '',
+            nopx   = null,
+            curr   = null,
+            props  = null,
+            _norm  = function(prop) {
+                prop = $.camel(prop);
+
+                if (_.css.norm[prop]) {
+                    prop = _.css.norm[prop];
+                }
+
+                return prop;
+            };
+
+        // Filter the comments and text nodes
+        if (!node || node.nodeType === 3 || node.nodeType === 8 || !node.style) {
+            return;
+        }
+
+        if (stype === 'object') {
+            // Create the properties object
+            props = style;
+        } else if (value !== undefined) {
+            // Only numbers and strings are allowed to set
+            if (vtype !== 'string' || vtype !== 'number') {
+                return;
+            }
+
+            // Create the properties object
+            props = {
+                style : value
+            };
+        }
+
+        if (props) {
+            nopx = _.css.nopx.split(',');
+
+            for (alias in props) {
+                prop = _norm(alias)
+                code = props[alias];
+
+                // Clean the px
+                if ($.index(prop, nopx) !== -1) {
+                    code.replace('px', '');
+                }
+
+                node.style[name] = props[alias];
+            }
+        } else {
+            search = $.camel(style);
+
+            if (_.css.norm[search]) {
+                prop = _.css.norm[search];
+            }
+
+            // Get inline styles first
+            curr = node.style;
+
+            if (curr && curr[prop]) {
+                return curr[prop];
+            }
+
+            // Get attached styles
+            curr = node.currentStyle ?
+                   node.currentStyle :
+                   window.getComputedStyle(node, null);
+
+            if (curr && curr[prop]) {
+                return curr[prop];
+            }
+
+            return '';
+        }
     }
 
     /**
@@ -663,38 +761,29 @@ $ = SJQL = (function() {
             pos    = 0,
             alias  = '',
             field  = '',
+            fields = '',
             apis   = [
                 function() {return new XMLHttpRequest()},
                 function() {return new ActiveXObject("Msxml2.XMLHTTP")},
                 function() {return new ActiveXObject("Msxml3.XMLHTTP")},
                 function() {return new ActiveXObject("Microsoft.XMLHTTP")}
             ],
-            fields = [],
             xhr    = null;
 
-        // Encode the request arguments
-        if (typeof args === 'object') {
+        //
+        if (type == 'GET' && args) {
             for (alias in args) {
-                fields.push(alias + '=' + encodeURIComponent(args[alias]));
+                fields += '&' + alias + '=' + encodeURIComponent(args[alias]);
             }
 
-            fields = fields.length ? fields.join('&') : '';
-        } else if (typeof args === 'string') {
-            fields = encodeURI(args);
-        }
-
-        // Add fields into the url for GET request
-        if (type === 'GET') {
-            if (url.match(/\?/)) {
-                url += '&' + fields;
-            } else {
-                url += '?' + fields;
+            if (!url.match(/\?/)) {
+                fields = fields.replace(/^&/, '?');
             }
 
-            fields = '';
+            url += fields;
         }
 
-        // Create the XMLHttpRequest object
+        //
         for (pos = 0; pos < 4; pos++) {
             try {
                 xhr = apis[pos]();
@@ -705,33 +794,24 @@ $ = SJQL = (function() {
             break;
         }
 
-        // Exit if XMLHttpRequest object doesn`t exist
+        //
         if (!xhr) {
             return;
         }
 
-        // Setup the XMLHttpRequest for the current request
+        //
         xhr.open(type, url, true);
         xhr.setRequestHeader('User-Agent', 'XMLHTTP/1.0');
 
         //
-        if (type === 'POST') {
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        }
-
-        // Set a handler for the request finish
         xhr.onreadystatechange = function() {
             if (xhr.readyState == 4) {
                 if (
-                    xhr.status == 200 ||
-                    xhr.status == 304
+                    xhr.status == 200 && handlers.success ||
+                    xhr.status == 304 && handlers.success
                 ) {
-                    // Run the success handler
-                    if (handlers.success) {
-                        handlers.success(xhr.responseText, xhr);
-                    }
+                    handlers.success(xhr.responseText, xhr);
                 } else if (handlers.error) {
-                    // Run the error handler
                     handlers.error({
                         status : xhr.status,
                         raw    : xhr.responseText ?
@@ -740,7 +820,6 @@ $ = SJQL = (function() {
                     });
                 }
             } else {
-                // Run the error handler
                 if (handlers.error) {
                     handlers.error(xhr);
                 }
@@ -749,8 +828,7 @@ $ = SJQL = (function() {
             }
         }
 
-        // Send the request
-        xhr.send(fields);
+        xhr.send();
 
         return xhr;
     };
