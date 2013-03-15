@@ -21,10 +21,7 @@ $ = SJQL = (function() {
         _ = {
             css : {
                 nopx : 'zoom,widows,zIndex,opacity,orphans,fontWeight,lineHeight,columnCount,fillOpacity',
-                pref : 'Webkit,O,Moz,ms',
-                norm : {
-                    'float' : 'cssFloat'
-                }
+                norm : {'float' : 'cssFloat'}
             },
             attr : {
                 bool : 'loop,open,async,defer,hidden,scoped,checked,selected,autoplay,controls,disabled,multiple,readonly,required,autofocus',
@@ -292,16 +289,17 @@ $ = SJQL = (function() {
      */
     $.css = function(node, style, value) {
         var
-            code   = '',
-            prop   = '',
-            alias  = '',
-            stype  = typeof style,
-            vtype  = typeof value,
-            search = '',
-            nopx   = null,
-            curr   = null,
-            props  = null,
-            _norm  = function(prop) {
+            code  = '',
+            prop  = '',
+            alias = '',
+            stype = typeof style,
+            vtype = typeof value,
+            nopx  = null,
+            curr  = null,
+            props = null;
+
+        function
+            _norm(prop) {
                 prop = $.camel(prop);
 
                 if (_.css.norm[prop]) {
@@ -316,7 +314,7 @@ $ = SJQL = (function() {
             return;
         }
 
-        if (stype === 'object') {
+        if (style === 'object') {
             // Create the properties object
             props = style;
         } else if (value !== undefined) {
@@ -334,8 +332,9 @@ $ = SJQL = (function() {
         if (props) {
             nopx = _.css.nopx.split(',');
 
+            // Set the values for given css properties
             for (alias in props) {
-                prop = _norm(alias)
+                prop = _norm(alias);
                 code = props[alias];
 
                 // Clean the px
@@ -346,11 +345,7 @@ $ = SJQL = (function() {
                 node.style[name] = props[alias];
             }
         } else {
-            search = $.camel(style);
-
-            if (_.css.norm[search]) {
-                prop = _.css.norm[search];
-            }
+            prop = _norm(style);
 
             // Get inline styles first
             curr = node.style;
@@ -544,6 +539,32 @@ $ = SJQL = (function() {
 
         // Save the new className
         node.className = cname.join(' ');
+    }
+
+    /**
+     * 
+     *
+     * @this   {$}
+     * @param  {object|DOMNode}
+     * @param  {object}
+     * @return {undefined|string}
+     */
+    $.sel = function(from, till) {
+        if (from !== undefined) {
+            if (till !== undefined) {
+                
+            } else {
+                
+            }
+        } else {
+            if (window.getSelection) {
+                return window.getSelection().toString();
+            } else if (document.selection.createRange) {
+                return document.selection.createRange().text;
+            }
+
+            return '';
+        }
     }
 
     /**
