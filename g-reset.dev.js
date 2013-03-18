@@ -228,7 +228,7 @@ $ = SJQL = (function() {
             clean.target = event.srcElement;
         }
 
-        if (event.target.nodeType === 3) {
+        if (event.target && clean.target.nodeType === 3) {
             clean.target = event.target.parentNode;
         }
 
@@ -542,19 +542,29 @@ $ = SJQL = (function() {
     }
 
     /**
-     * 
+     * Get the selection or select the node content
      *
      * @this   {$}
-     * @param  {object|DOMNode}
-     * @param  {object}
+     * @param  {DOMNode}
      * @return {undefined|string}
      */
-    $.sel = function(from, till) {
-        if (from !== undefined) {
-            if (till !== undefined) {
-                
+    $.sel = function(node) {
+        var
+            rng = null,
+            sel = null;
+
+        if (node !== undefined) {
+            if (document.createRange) {
+                rng = document.createRange();
+                rng.selectNode(node)
+
+                sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(rng);
             } else {
-                
+                rng = document.body.createTextRange();
+                rng.moveToElementText(node);
+                rng.select();
             }
         } else {
             if (window.getSelection) {
@@ -564,6 +574,78 @@ $ = SJQL = (function() {
             }
 
             return '';
+        }
+    }
+
+    /**
+     * Get or set a caret position
+     *
+     * @this   {$}
+     * @param  {DOMNode}
+     * @param  {number|null}
+     * @param  {string}
+     * @return {undefined|number}
+     */
+    $.caret = function(node, pos, text) {
+        var
+            ie  = document.selection ? true : false,
+            ind = 0,
+            len = 0,
+            val = $.val(node),
+            rng = null;
+
+        len = val.length;
+
+        // Set a focus into a field
+        if (pos !== undefined || ie) {
+            node.focus();
+        }
+
+        if (ie) {
+            // A caret position in IE
+            rng = document.selection.createRange();
+            rng.moveStart('character', -len);
+
+            if (typeof pos === 'number') {
+                rng.move('character', pos);
+                rng.select();
+                rng.moveStart('character', -len);
+                rng.select();
+                ind = rng.text.length;
+                rng.moveStart('character', pos);
+                rng.select();
+            } else {
+                ind = rng.text.length;
+            }
+        } else {
+            // A caret position in other browsers
+            if (typeof pos === 'number') {
+                node.selectionStart = pos;
+                node.selectionEnd   = pos;
+            }
+
+            ind = node.selectionStart;
+        }
+
+        if (typeof text === 'string') {
+            // Insert a given text
+            $.val(
+                node,
+                val.substring(0, ind) +
+                text +
+                val.substring(ind)
+            );
+
+            if (ie) {
+                rng.move('character', ind + text.length);
+                rng.select();
+            } else {
+                node.selectionStart = ind + text.length;
+                node.selectionEnd   = ind + text.length;
+            }
+        } else {
+            // Return a current position
+            return ind;
         }
     }
 
