@@ -10,9 +10,13 @@ $ = SJQL = (function() {
         /**
          * Main wrapper
          *
-         * @value {object}
+         * @constructor
+         *
+         * @this   {$}
+         * @param  {undefined|string|DOMNode}
+         * @return {$}
          */
-        $ = function() {},
+        $ = function(node) {},
         /**
          * Common trash object
          *
@@ -725,6 +729,33 @@ $ = SJQL = (function() {
         }
 
         return offset;
+    }
+
+    /**
+     * Iterate through the string, array or object
+     *
+     * @this   {$}
+     * @param  {string|object|Array}
+     * @param  {function}
+     * @return {undefined}
+     */
+    $.each = function(items, handler) {
+        var
+            end   = 0,
+            pos   = -1,
+            alias = '';
+
+        if (items.length) {
+            end = items.length - 1;
+
+            while (pos++ < end) {
+                handler.call(items[pos], pos, items[pos]);
+            }
+        } else if (typeof items === 'object') {
+            for (alias in items) {
+                handler.call(items[alias], alias, items[alias]);
+            }
+        }
     }
 
     /**
