@@ -8,15 +8,20 @@ $ = SJQL = (function() {
 
     var
         /**
-         * Main wrapper
+         * Core
          *
          * @constructor
          *
          * @this   {$}
-         * @param  {undefined|string|DOMNode}
+         * @param  {string|object}
+         * @param  {DOMNode}
          * @return {$}
          */
-        $ = function(node) {},
+        $ = function(smth, ctx) {
+            if ($.wrapper) {
+                return new $.wrapper(smth, ctx);
+            }
+        },
         /**
          * Common trash object
          *
@@ -58,10 +63,10 @@ $ = SJQL = (function() {
      * @param  {DOMNode}
      * @return {DOMNodesList}
      */
-    $.find = function(query, ctx) {
+    $.find = function(expr, ctx) {
         ctx = ctx || document;
 
-        return ctx.querySelectorAll(query);
+        return ctx.querySelectorAll(expr);
     }
 
     /**
@@ -546,6 +551,64 @@ $ = SJQL = (function() {
     }
 
     /**
+     * Get or set the values into the localStorage or the sessionStorage
+     *
+     * @this   {$}
+     * @param  {string}
+     * @param  {string}
+     * @param  {boolean}
+     * @param  {boolean}
+     * @return {undefined|string|object|Exception}
+     */
+    $.storage = function(alias, value, session, clear) {
+        var
+            end     = 0,
+            pos     = 0,
+            type    = typeof value,
+            marker  = '',
+            all     = {},
+            storage = session ? sessionStorage : localStorage;
+
+        if (value !== undefined) {
+            if (value === null) {
+                // Remove the item
+                storage.removeItem(alias);
+            } else {
+                // Stringify booleans and objects
+                if (type === 'boolean' || type === 'object') {
+                    value = JSON.stringify(value);
+                }
+
+                // Try to write the value into the storage
+                try {
+                    storage.setItem(alias, value);
+                } catch (exc) {
+                    if (exc === QUOTA_EXCEEDED_ERR && clear) {
+                        storage.clear();
+                        storage.setItem(alias, value);
+                    } else {
+                        return exc;
+                    }
+                }
+            }
+        } else if (alias !== undefined) {
+            // Read the storage item value
+            return storage.getItem(alias);
+        } else {
+            // Read all the items in the storage
+            end = storage.length;
+
+            for (pos = 0; pos < end; pos++) {
+                marker = storage.key(pos);
+
+                all[marker] = storage.getItem(marker);
+            }
+
+            return all;
+        }
+    }
+
+    /**
      * Get the selection or select the node content
      *
      * @this   {$}
@@ -983,11 +1046,7 @@ $ = SJQL = (function() {
             check = data.substring(0, 1);
 
             if (check == '{' || check == '[' || check == '"') {
-                if (window.JSON) {
-                    json = window.JSON.parse(data);
-                } else {
-                    json = eval(data);
-                }
+                json = window.JSON.parse(data);
             }
         }
 
