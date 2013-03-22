@@ -551,6 +551,86 @@ $ = SJQL = (function() {
     }
 
     /**
+     * 
+     *
+     * @this   {$}
+     * @param  {boolean|string}
+     * @param  {string}
+     * @param  {object}
+     * @return {undefined|string|object}
+     */
+    $.cookie = function(alias, value, args) {
+        var
+            end     = 0,
+            pos     = 0,
+            cookie  = [],
+            cookies = [],
+            all     = {},
+            till    = null,
+            props   = {};
+
+        if (value === null) {
+            // Delete existant cookie
+            till = new Date();
+            till.setTime(till.getTime() - 1);
+
+            document.cookie = alias + '=; expires=' + till.toGMTString();
+        } else if (typeof value === 'string') {
+            // Set or reset a cookie
+            cookie = alias + '=' + escape(value);
+
+            if (args) {
+                if (args instanceof Date) {
+                    cookie += '; expires=' + args.toUTCString();
+                } else {
+                    if (args.expires) {
+                        cookie += '; expires=' + args.expires.toUTCString();
+                    }
+
+                    if (args.path) {
+                        cookie += '; path=' + escape(args.path);
+                    }
+
+                    if (args.domain) {
+                        cookie += '; domain=' + escape(args.domain);
+                    }
+
+                    if (args.secure) {
+                        cookie += '; secure';
+                    }
+                }
+            }
+
+            document.cookie = cookie;
+        } else {
+            cookies = document.cookie.split(';');
+            end     = cookies.length;
+
+            // Get the key-value pairs from cookies array
+            for (pos = 0; pos < end; pos++) {
+                cookie = cookies[pos].split('=');
+                cookie[1] = unescape(cookie[1]);
+
+                // Try to find a cookie
+                if (cookie[0] === alias) {
+                    return cookie[1];
+                }
+
+                // Save the key-value pair
+                all[cookie[0]] = cookie[1];
+            }
+
+            if (alias === true) {
+                // Return all the cookies
+                return all;
+            } else {
+                // Return nothing
+                return null;
+            }
+        }
+    }
+
+    /**
      * Get or set the values into the localStorage or the sessionStorage
      *
      * @this   {$}
