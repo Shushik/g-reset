@@ -390,10 +390,11 @@ $ = SJQL = (function() {
             tags = 'input,select,textarea,button',
             type = typeof value;
 
-        if (tag && $.index(tag, tags.split(',')) != -1) {
+        if (tag && $.index(tag, tags.split(',')) !== -1) {
             if (value !== undefined) {
                 if (type === 'number' || type === 'string') {
-                    $.prop(node, 'value', value)
+                    node.value = value;
+                    node.setAttribute("value", value);
                 }
             }
 
