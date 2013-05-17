@@ -917,6 +917,25 @@ $ = SJQL = (function() {
     }
 
     /**
+     * Extend a pseudoclass object
+     *
+     * @this   {$}
+     * @param  {function}
+     * @param  {function}
+     * @return {function}
+     */
+    $.extend = function(chld, prnt) {
+        var
+            tmp = function() {};
+
+        tmp.prototype = prnt.prototype;
+        chld.prototype = new tmp();
+
+        chld.prototype.constructor = chld;
+        chld.superclass = prnt.prototype;
+    }
+
+    /**
      * IndexOf alias (works with objects too)
      *
      * @this   {$}
